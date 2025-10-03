@@ -9,11 +9,18 @@ import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.logic.commands.RemarkCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 
-public class RemarkCommandParser implements Parser<RemarkCommand>{
+
+/**
+ * Parses input arguments and creates a new RemarkCommand object.
+ */
+public class RemarkCommandParser implements Parser<RemarkCommand> {
+
+    @Override
     public RemarkCommand parse(String args) throws ParseException {
         requireNonNull(args);
-        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args,
-                PREFIX_REMARK);
+
+        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args, PREFIX_REMARK);
+        String remark = argMultimap.getValue(PREFIX_REMARK).orElse("");
 
         Index index;
         try {
@@ -23,9 +30,6 @@ public class RemarkCommandParser implements Parser<RemarkCommand>{
                     RemarkCommand.MESSAGE_USAGE), ive);
         }
 
-        String remark = argMultimap.getValue(PREFIX_REMARK).orElse("");
-
         return new RemarkCommand(index, remark);
     }
-
 }
