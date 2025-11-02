@@ -278,11 +278,44 @@ Assigns weekly or date-specific lessons to a student.
 | Support overnight lessons | ❌ No | Lessons assumed not to cross midnight |
 |Can be modified through `edit` command |✅ Yes| Provide flexibility for users and maintain consistency
 
+**Activity Diagram**
+The following activity diagram illustrates how schedule input is validated and processed:
+
+<img src="images/ScheduleActivityDiagram.png" width="600" />
 
 ---
 
+### 3.2 `note` Feature
 
-### 3.2 `list` Feature
+Purpose:
+Allows tutors to record short remarks or progress notes for each student or parent.
+
+Key Classes:
+- NoteCommand
+- NoteCommandParser
+- Person / Student / Parent
+- Note
+
+Behaviour:
+- Adds or replaces a note for the specified person (student or parent).
+- Accepts text input of up to 100 characters.
+- Supports removal by typing note INDEX without any content.
+- Case and whitespace-insensitive for the command word and prefix.
+- The same note field can also be edited using the edit command.
+
+Design Considerations
+
+| Option | Decision | Reason |
+|--------|-----------|--------|
+| Store note as plain text | ✅ Yes | Easy to serialize and display. |
+| Restrict to students only | ❌ No | Tutors may wish to add notes for parents too. |
+| Restrict to 100 characters | ✅ Yes | Note should be short and simple |
+| Allow clearing existing notes | ✅ Yes | Gives users control to remove old notes easily. |
+| Can be modified through edit command | ✅ Yes | Ensures flexibility and consistent data handling. |
+
+---
+
+### 3.3 `list` Feature
 
 
 **Purpose:**
@@ -319,12 +352,9 @@ list <DATE>
 | Persist filtered list | ❌ No | Filters should reset for predictability |
 | Strict argument validation | ✅ Yes | Prevent invalid filters like `list abc` |
 
-
 ---
 
-
-
-### 3.3 `paid` Feature
+### 3.4 `paid` Feature
 
 
 
@@ -360,7 +390,7 @@ Toggles the payment status of a student or parent, ensuring the UI and derived a
 
 ---
 
-### 3.4 `link` / `unlink` Features
+### 3.5 `link` / `unlink` Features
 
 
 
@@ -400,7 +430,7 @@ Creates and removes relationships between a `Parent` and one or more `Students`.
 ---
 
 
-### 3.5 `reset all` Feature
+### 3.6 `reset all` Feature
 
 **Purpose:**
 Resets payment status of all contacts (Students and Parents) to unpaid with a single command.
@@ -451,14 +481,12 @@ Captures the per-lesson fee for students and automatically aggregates the total 
 
 **Design Considerations**
 
-| Option | Decision | Reason |
-|--------|-----------|--------|
-| Store cost as raw string | ✅ Yes | Simplifies parsing and avoids floating-point drift |
-| Allow parents to set custom costs | ❌ No | Prevents mismatch between parent and child totals |
-| Auto-recalculate on relevant commands | ✅ Yes | Guarantees derived values stay correct without user action |
-| Permit zero or missing child costs | ✅ Yes | Some students may not yet have agreed rates |
+| Option                                           | Decision | Reason                                                      |
+|--------------------------------------------------|-----------|-------------------------------------------------------------|
+| Allow partial reset (e.g., only unpaid students) | ❌ No | Ensures predictable behaviour with clarity.                       |
+| Accept variants or extra tokens                  | ❌ No | Prevents accidental mass resets and stays consistent |
 
----
+
 --------------------------------------------------------------------------------------------------------------------
 
 
@@ -555,7 +583,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 (For all use cases below, the **System** is the `Tutorhub` and the **Actor** is the `user`, unless specified otherwise)
 
 
-**Use case: Delete a person**
+**Use case: UC1 - Delete a person**
 
 
 **MSS**
@@ -576,7 +604,7 @@ Use case ends.
 * 2a. The list is empty.
 
 
-Use case ends.
+  Use case ends.
 
 
 * 3a. The given index is invalid.
@@ -585,188 +613,203 @@ Use case ends.
 * 3a1. Tutorhub shows an error message.
 
 
-     Use case resumes at step 2.
+  Use case resumes at step 2.
 
 
-**Use Case: Add a New Student**
-
-
-**Main Success Scenario (MSS):**
-1. User enters the command to add a student.
-2. System validates the input format.
-3. System stores the new student in the address book.
-4. System displays a success message
-Use case ends.
-
-
-**Extensions:**
-* 2a. The type field is missing or invalid.
-    * 2a1. System shows error message
-* 2b. Duplicate student detected.
-    * 2b1. System shows error message
-      Use case ends.
-* 2c. Phone number invalid 
-    * 2c1. System shows error message.
-
-  Use case resumes at step 1.
-
-
----
-
-
-**Use Case: Add a New Parent**
+**Use Case: UC2 - Add a New Student**
 
 
 **Main Success Scenario (MSS):**
-1. User enters the command to add a parent.
-2. System validates the input format.
-3. System stores the new parent in the address book.
+1. User enters the command to add a student
+2. System validates the input format
+3. System stores the new student in the address book
 4. System displays a success message
+
    Use case ends.
 
 
 **Extensions:**
 * 2a. The type field is missing or invalid.
-    * 2a1. System shows error message
+    * 2a1. System shows error message.
+
       Use case resumes at step 1.
-* 2b. Duplicate parent detected.
-    * 2b1. System shows error message
+
+* 2b. Duplicate student detected.
+    * 2b1. System shows error message.
+
       Use case ends.
-* 2c. Phone number invalid.
+
+* 2c. Phone number invalid
     * 2c1. System shows error message.
+
       Use case resumes at step 1.
 
 
 ---
 
 
-**Use Case: Link Parent to Student**
+**Use Case: UC3 - Add a New Parent**
+
+
+**Main Success Scenario (MSS):**
+1. User enters the command to add a parent
+2. System validates the input format
+3. System stores the new parent in the address book
+4. System displays a success message
+
+   Use case ends.
+
+
+**Extensions:**
+* 2a. The type field is missing or invalid.
+    * 2a1. System shows error message.
+
+      Use case resumes at step 1.
+
+* 2b. Duplicate parent detected.
+    * 2b1. System shows error message.
+
+      Use case ends.
+
+* 2c. Phone number invalid.
+    * 2c1. System shows error message.
+
+      Use case resumes at step 1.
+
+
+---
+
+
+**Use Case: UC4 - Link Parent to Student**
 
 
 **Main Success Scenario (MSS):**
 1. User enters the command
-2. System validates that both student and parent exist and have correct types.
-3. System creates a bidirectional link between student and parent.
+2. System validates that both student and parent exist and have correct types
+3. System creates a bidirectional link between student and parent
 4. System displays success message
+
    Use case ends.
 
 
 **Extensions:**
 * 2a. Student or parent does not exist.
-    * 2a1. System shows error message
-* 2b. Student and parent already linked.
-    * 2b1. System shows error message
+    * 2a1. System shows error message.
+
       Use case resumes at step 1.
+
+* 2b. Student and parent already linked.
+    * 2b1. System shows error message.
+
+      Use case resumes at step 1.
+
 * 2c. Parent entered in student field or vice versa.
     * 2c1. System shows appropriate error message.
 
----
-
-**Use Case: Update Student Cost :**
-
-**Main Success Scenario (MSS):**
-1. User enters command to update a student’s per-lesson cost.
-2. System validates that the selected person is a student and that the cost format is numeric.
-3. System stores the updated cost.
-4. System displays success message
-   Use case ends.
-
-**Extensions:**
-* 2a. `pay/` value is invalid
-  * 2a1. System shows error message
-    Use case resumes at step 1.
-* 2b. Target person is a parent.
-  * 2b1. System shows error message
-    Use case resumes at step 1.
+      Use case resumes at step 1
 
 ---
 
-**Use Case: Toggle Payment Status :**
+**Use Case: UC5 - Toggle Payment Status :**
 
 **Main Success Scenario (MSS):**
 1. User enters command
-2. System locates the person at the specified index and flips their payment status.
+2. System locates the person at the specified index and flips their payment status
 3. System displays success message
 
    Use case ends.
 
 **Extensions:**
 * 1a. Index is invalid.
-  * 1a1. System shows error message
+  * 1a1. System shows error message.
 
     Use case ends.
+
 * 2a. Target is a parent with linked children.
   * 2a1. System toggles every linked child to the same paid/unpaid state before displaying success.
-   
+
     Use case resumes at step 3.
+
 * 2b. Target is a parent without linked children.
-  * 2b1. System shows error message 
+  * 2b1. System shows error message
 
     Use case resumes at step 1.
-      Use case resumes at step 1.
 
 
 ---
 
 
-**Use Case: Unlink Parent from Student**
+**Use Case: UC6 - Unlink Parent from Student**
 
 
 **Main Success Scenario (MSS):**
 1. User enters the command
-2. System validates that both student and parent exist and are linked.
-3. System removes the bidirectional link.
+2. System validates that both student and parent exist and are linked
+3. System removes the bidirectional link
 4. System displays success message
+
    Use case ends.
 
 
 **Extensions:**
 * 2a. Student or parent does not exist.
     * 2a1. System shows error message
+
       Use case resumes at step 1.
+
 * 2b. Student and parent not linked.
     * 2b1. System shows error message
+
       Use case resumes at step 1.
+
 * 2c. Parent entered in student field or vice versa.
     * 2c1. System shows error message
+
       Use case resumes at step 1.
 
 
 ---
 
 
-**Use Case: Edit Student Details**
+**Use Case: UC7 - Edit Student Details**
 
 
 **Main Success Scenario (MSS):**
-1. User enters the command to edit a student’s details.
-2. System validates the student exists and input format is correct.
-3. System updates the student’s details.
-4. System displays a success message: "Student <Student Name> details updated successfully."
+1. User enters the command to edit a student’s details
+2. System validates the student exists and input format is correct
+3. System updates the student’s details
+4. System displays a success message
+
    Use case ends.
 
 
 **Extensions:**
 * 2a. Student not found.
-    * 2a1. System shows error message: "Error, student not found."
+    * 2a1. System shows error message.
+
       Use case resumes at step 1.
+
 * 2b. Input format invalid.
     * 2b1. System shows error message.
+
       Use case resumes at step 1.
+
 * 2c. Editing of type disallowed.
-    * 2c1. System shows error message: "You cannot edit a person's type (Student/Parent). Delete and re-add with the desired type."
+    * 2c1. System shows error message.
+
+      Use case resumes at step 1.
 
 
 ---
 
 
-**Use Case: Add Schedule to Student**
+**Use Case: UC8 - Add Schedule to Student**
 
 
 **Main Success Scenario (MSS):**
 1. User chooses to schedule a lesson
-2. System validates student exists and schedule format is correct.
-3. System stores or replaces the student’s schedule.
+2. System validates student exists and schedule format is correct
+3. System stores or replaces the student’s schedule
 4. System displays success message
 
    Use case ends.
@@ -774,15 +817,17 @@ Use case ends.
 
 **Extensions:**
 * 2a. Student not found.
-    * 2a1. System shows error message
+    * 2a1. System shows error message.
 
       Use case resumes at step 1.
+
 * 2b. Person is a parent.
-    * 2b1. System shows error message
+    * 2b1. System shows error message.
 
       Use case resumes at step 1.
+
 * 2c. Schedule format invalid.
-    * 2c1. System shows error message
+    * 2c1. System shows error message.
 
       Use case resumes at step 1.
 
@@ -790,13 +835,13 @@ Use case ends.
 ---
 
 
-**Use Case: Add Personal Notes**
+**Use Case: UC9 - Add Personal Notes**
 
 
 **Main Success Scenario (MSS):**
-1. User enters the command to add a note for a student.
-2. System validates student exists and note format is correct.
-3. System stores the note.
+1. User enters the command to add a note for a student
+2. System validates student exists and note format is correct
+3. System stores the note
 4. System displays success message
 
    Use case ends.
@@ -804,7 +849,7 @@ Use case ends.
 
 **Extensions:**
 * 2a. Note too long (>100 characters).
-    * 2a1. System shows error message
+    * 2a1. System shows error message.
 
       Use case resumes at step 1.
 
@@ -812,13 +857,13 @@ Use case ends.
 ---
 
 
-**Use Case: Reset all Payments**
+**Use Case: UC10 - Reset all Payments**
 
 
 **Main Success Scenario (MSS):**
-1. User enters the command: reset all.
-2. System validates the format.
-3. System updates every contact’s payment status to unpaid.
+1. User enters the command: reset all
+2. System validates the format
+3. System updates every contact’s payment status to unpaid
 4. System displays success message
 
    Use case ends.
@@ -829,8 +874,9 @@ Use case ends.
     * 2a1. System shows error message
 
       Use case resumes at step 1.
+
 * 3a. No contacts exist in the system.
-    * 3a1. System shows warning
+    * 3a1. System shows warning.
 
       Use case ends.
 
@@ -838,15 +884,33 @@ Use case ends.
 ---
 
 
-**Use Case: List All Contacts**
+**Use Case: UC11 - List All Contacts**
 
 
 **Main Success Scenario (MSS):**
-1. User enters command.
+1. User enters command
 2. System validates the argument (if any)
-3. System retrieves contacts according to specified argument.
+3. System retrieves contacts according to specified argument
 4. System displays the list in the GUI with a success message
 
+   Use case ends.
+
+
+**Extensions:**
+* 2a. Invalid argument entered.
+    * 2a1. System shows error message.
+
+      Use case resumes at step 1.
+
+---
+
+**Use Case: UC12 - Filter contacts based on payment status/schedule**
+
+**Main Success Scenario (MSS):**
+1. User enters command
+2. System validates the argument (if any)
+3. System retrieves contacts according to specified argument
+4. System displays the list in the GUI with an appropriate message
    Use case ends.
 
 
@@ -855,73 +919,53 @@ Use case ends.
     * 2a1. System shows error message
 
       Use case resumes at step 1.
----
-
-**Use Case: Filter contacts based on payment status/schedule**
-
-**Main Success Scenario (MSS):**
-1. User enters command
-2. System validates the argument (if any)
-3. System retrieves contacts according to specified argument.
-4. System displays the list in the GUI with an appropriate message.
-   Use case ends.
-
-
-**Extensions:**
-* 2a. Invalid argument entered.
-    * 2a1. System shows error message 
-    
-      Use case resumes at step 1.
 
 
 
 ### 5.4 Non-Functional Requirements
 
 
-#### 🧭 Business Rules
+#### Business Rules
 - Usable by **private tutors with moderate computer skills**.
 - Command syntax must be intuitive and forgiving (case- and space-insensitive).
 - Error messages should be clear, descriptive, and guide users toward correction.
 
 
-#### ♿ User Accessibility
+#### User Accessibility
 - Fully operable via **Command Line Interface (CLI)**.
 - Commands should be **case-insensitive** and **whitespace-tolerant**.
 - Simple GUI layout with readable font and clear separation between students and parents.
 
 
-#### 💾 Data Integrity & Management
+#### Data Integrity & Management
 - Data autosaves after each successful command.
-- Prevent deletion of linked contacts without unlinking first.
 - JSON data must remain human-readable and recoverable.
-- Reject invalid or overlapping schedule inputs.
 
 
-#### ⚙️ Technical Requirements
+#### Technical Requirements
 - Implemented in **Java 17** using **JavaFX**.
 - Must function **offline** for all core features.
 - Distributed as a **single JAR file** compatible with Windows, macOS, and Linux.
 - Data stored locally in `tutorhub.json`.
 
 
-#### 💻 Performance & Scalability
+#### Performance & Scalability
 
-| Requirement       | Description                                                             |
-|-------------------|-------------------------------------------------------------------------|
-| **Response Time** | Commands should execute within **1 second** under normal load.          |
-| **Memory Usage**  | Should not exceed **512MB** during standard operations.                 |
+| Requirement       | Description                                                            |
+|-------------------|------------------------------------------------------------------------|
+| **Response Time** | Commands should execute within **1 second**.          |
 | **Data Capacity** | Supports at least **1000 contacts** and **2000 schedules** efficiently. |
-| **Startup Time**  | Application should launch within **3 seconds** on standard hardware.    |
+| **Startup Time**  | Application should launch within **3 seconds**.   |
 
 
-#### 🧩 Usability & Maintainability
+#### Usability & Maintainability
 - CLI commands follow a **consistent prefix/value pattern**.
 - Code follows **SE-EDU Java coding standards**.
 - Unit test coverage of **≥80%** for core logic and parsers.
 - New features must include updated documentation and tests.
 
 
-#### 🚫 Constraints
+#### Constraints
 
 | Type           | Constraint                                           |
 |----------------|------------------------------------------------------|
@@ -959,75 +1003,160 @@ Use case ends.
 --------------------------------------------------------------------------------------------------------------------
 
 
-## **6. Appendix: Instructions for manual testing**
+## **6. Appendix: Instructions for Manual Testing**
+
+The scenarios below chart one clean path through TutorHub’s tutor-focused features. They complement the User Guide by supplying ready-to-use commands and expected outputs. After each scenario, try extra variations (invalid formats, edge cases) to expand coverage.
+
+<div markdown="span" class="alert alert-info">:information_source: **Note:** Start from a known baseline (Section 6.2) before executing an independent scenario. Commands are case-insensitive unless stated.</div>
 
 
-Given below are instructions to test the app manually.
+### 6.1.1 Launching TutorHub
+
+1. From the project root run `./gradlew run`.
+2. Wait for the JavaFX window to load the bundled sample data.
+3. Close the window and relaunch with the same command to confirm size/position persistence (stored in `preferences.json`).
 
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** These instructions only provide a starting point for testers to work on;
-testers are expected to do more *exploratory* testing.
+### 6.1.2 Preparing a Deterministic Dataset
+
+Reset the sample data and add two students plus a parent. Paste these commands one at a time:
+
+```text
+clear
+add type/s n/Alex Tan p/91234567 e/alex.tan@example.com a/123 Clementi Road note/Likes geometry schedule/Monday 15:00-17:00 pay/80 t/sec3
+add type/s n/Betty Lim p/93456789 e/b.lim@example.com a/22 Bellflower Street schedule/10-20-2025 09:00-10:30 pay/120 t/p6
+add type/p n/Grace Lee p/95551234 e/grace.lee@example.com a/88 Sunset Avenue note/Primary contact
+list
+```
+
+Expected after `list`:
+- 1 — Alex Tan (Student) with cost `$80`.
+- 2 — Betty Lim (Student) with cost `$120`.
+- 3 — Grace Lee (Parent) with no cost yet and payment unchecked.
 
 
-</div>
+### 6.1.3 Linking and Unlinking Households
+
+1. `link student/1 parent/3` → Success banner “Linked Alex Tan to Grace Lee”. Grace now shows cost `$80`; Alex lists Grace as parent.
+2. `link student/2 parent/3` → Grace’s cost updates to `$200` and both students list Grace.
+3. `link student/2 parent/3` → Expect error “These two people are already linked.”
+4. `unlink student/2 parent/3` → Grace’s cost drops to `$80`. Re-link for later sections: `link student/2 parent/3`.
 
 
-### 6.1 Launch and shutdown
+### 6.1.4 Payment Tracking and Aggregation
+
+1. `paid 1` → Alex toggles to Paid; Grace remains Unpaid because Betty is unpaid.
+2. `paid 2` → Betty toggles to Paid; Grace automatically becomes Paid (all children paid).
+3. `paid 1` → Alex goes back to Unpaid; Grace automatically reverts to Unpaid.
+4. `paid n/Betty Lim` → Betty toggles via name lookup regardless of current ordering.
 
 
-1. Initial launch
+### 6.1.5 Editing While Preserving Links
+
+1. `edit 1 t/MathClub pay/90` → Alex keeps Grace as parent; Grace’s aggregated cost becomes `$210`.
+2. `edit 3 pay/300` → Expect error “Cannot edit cost for a parent. Parent cost is derived from their linked children.”
+3. `edit 2 e/betty.lim@sample.com` → Success message; Grace remains linked.
 
 
-1. Download the jar file and copy into an empty folder
+### 6.1.6 Managing Schedules
+
+1. `schedule 1 schedule/Friday 18:00-19:30` → Alex’s card shows normalised slot “Friday 18:00-19:30”.
+2. `schedule 2 schedule/` → Betty’s schedule is cleared and the row disappears. (`schedule 2` works as well)
+3. `schedule 3 schedule/Monday 10:00-11:30` → Expect error “Cannot edit schedule for a parent.”
 
 
-1. Double-click the jar file Expected: Shows the GUI with a set of sample contacts. The window size may not be optimum.
+### 6.1.7 Notes for Students and Parents
+
+1. `note 3 note/Prefers evening calls.` → Grace gains a note; message “Added Note to Person: Grace Lee”.
+2. `note 3 note/` → Note removed with message “Removed Note from Person: Grace Lee”. (`note 3` works as well)
 
 
-1. Saving window preferences
+### 6.1.8 Listing and Filtering Views
+
+1. `list` → Resets any filters.
+2. Payment filters:
+   - `list paid` → Shows only contacts whose checkbox is selected (Grace only when both students are paid).
+   - `list unpaid` → Inverse set.
+3. Schedule filters (case/spacing insensitive):
+   - `list schedule` → Students with a schedule (Alex only if Betty’s is empty).
+   - `list friday` → Matches Alex’s weekday schedule.
+   - `list 10-20-2025` → Matches Betty’s date-based schedule if previously set.
+4. Run `list` after each filter to restore the full view.
 
 
-1. Resize the window to an optimum size. Move the window to a different location. Close the window.
+### 6.1.9 Resetting a Billing Cycle
+
+1. Ensure at least one student is Paid (e.g., `paid 1`, `paid 2`).
+2. `reset all` (exact phrase) → All students and parents become Unpaid while parent cost totals stay intact.
 
 
-1. Re-launch the app by double-clicking the jar file.<br>
-   Expected: The most recent window size and location is retained.
-
-
+### 6.1.10 Persistence Checks
+1. Make observable edits (e.g., toggle payments, change schedules).
+2. Close TutorHub normally.
+3. Relaunch with `./gradlew run`, execute `list`, and confirm all changes persisted (data stored in `data/tutorhub.json`).
 1. _{ more test cases …​ }_
 
+### 6.2 Appendix: Effort
 
-### 6.2 Deleting a person
+#### Overview
+TutorHub extends the original AddressBook3 (AB3) by managing two distinct entity types (Students and Parents), along with linked relationships, payment tracking, and lesson scheduling.
+
+This introduced significantly higher data complexity, requiring new parsing, validation, and UI synchronization mechanisms.
+
+#### Challenges Faced
+1. Multi-entity Management:
+
+   AB3 handled a single entity type (Person), but TutorHub needed dynamic type handling with different constraints and mutual relationships (Student ↔️ Parent).
+2. Schedule System:
+
+   Designing validation for both weekly and date-based lessons, while rejecting invalid times (e.g., midnight-crossing), required precise regex and logic.
+3. UI Synchronization:
+
+   Keeping the GUI reactive to edits in linked entities demanded careful Model–View–Controller coordination.
+4. Command Integration:
+
+   Multiple new commands (e.g., note, schedule, paid/unpaid, list <DAY>/<DATE>, link/unlink) needed consistent command structure and undo-safe behavior.
+5. Data Persistence:
+
+   JSON serialization was adapted to support nested structures for linked entities and schedules.
+
+#### Achievements
+- Unified architecture that allows case-insensitive command parsing and auto-formatting (e.g., capitalized day names).
+- Comprehensive manual testing coverage and consistent error-handling UX.
+- Refined User Guide and Developer Guide with use cases, UML diagrams, and clear testing flow.
+
+#### Reuse and Adaptation
+- Base Classes: Reused and extended Person, Command, and Parser classes from AB3.
+- Storage Layer: Reused AB3’s JSON framework, adapted for TutorHub entities.
+- UI Framework: Retained AB3’s JavaFX architecture but customized FXML components.
+
+Overall, TutorHub required ~1.5x the development effort of AB3 due to dual-entity management, UI linkage, and extended command coverage.
 
 
-1. Deleting a person while all persons are being shown
+### 6.3 Appendix: Planned Enhancements
 
+Team size: 5
+(Maximum allowed: 10 enhancements)
 
-1. Prerequisites: List all persons using the `list` command. Multiple persons in the list.
+---
 
+#### 1. Support Overnight Lessons
+Current limitation: Schedule cannot cross midnight (e.g., 23:00–01:00).
 
-1. Test case: `delete 1`<br>
-   Expected: First contact is deleted from the list. Details of the deleted contact shown in the status message. Timestamp in the status bar is updated.
+Planned Enhancement: Allow lessons spanning midnight by splitting them into two logical segments internally.
 
+#### 2. Editable Person Type (Student ↔️ Parent)
+Currently disabled due to relational conflicts.
 
-1. Test case: `delete 0`<br>
-   Expected: No person is deleted. Error details shown in the status message. Status bar remains the same.
+Planned Enhancement: Implement safe conversion flow with auto-unlinking and re-validation.
 
+#### 3. UI Display for Linked Entities
+Current linking is text-based.
 
-1. Other incorrect delete commands to try: `delete`, `delete x`, `...` (where x is larger than the list size)<br>
-   Expected: Similar to previous.
+Planned Enhancement: Add graphical indicators or tooltips showing parent–student relationships.
 
+#### 4. `list <DAY>` includes dated schedules that fall on that weekday
 
-1. _{ more test cases …​ }_
+Current Limitation: When a user runs list Monday, only schedules explicitly using weekday format (e.g., “Monday 14:00–16:00”) are shown. Schedules with specific dates (e.g., “11-3-2025 14:00–16:00”) that fall on a Monday are not included.
 
-
-### 6.3 Saving data
-
-
-1. Dealing with missing/corrupted data files
-
-
-1. _{explain how to simulate a missing/corrupted file, and the expected behavior}_
-
-
-1. _{ more test cases …​ }_
+Planned Enhancement: Enhance the list <DAY> command to identify and display all schedules whose dates fall on the specified weekday, even if they are stored in date format. This allows users to view all Monday lessons, whether recurring or date-specific in a single command.
