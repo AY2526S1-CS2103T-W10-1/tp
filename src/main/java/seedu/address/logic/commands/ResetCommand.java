@@ -47,7 +47,6 @@ public class ResetCommand extends Command {
             }
         }
 
-        // Pass 2: reset remaining paid persons
         people = new ArrayList<>(model.getAddressBook().getPersonList());
         for (int i = 0; i < people.size(); i++) {
             Person p = people.get(i);
